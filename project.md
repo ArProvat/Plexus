@@ -299,3 +299,160 @@ Keep source documents, extracted text, vectors, and queries local by default. Cr
 - Let users pause, resume, and delete derived data.
 - Keep the search experience centered on one search box, file-type filters, indexing progress, and source previews.
 - Optimize for passage relevance and dependable source opening before adding more modalities.
+
+## Seven-day MVP structure
+
+Use this proposed Flutter and Android structure for the seven-day MVP. These paths describe the intended architecture; files should be created as each milestone is implemented. Keep Flutter-generated build files and directories as created by the tooling. Add background worker files only when that milestone is implemented.
+
+```text
+pocketsearch/
+  pubspec.yaml
+  README.md
+
+  lib/
+    main.dart
+    app.dart
+
+    models/
+      source_file.dart
+      document_chunk.dart
+      search_result.dart
+      index_progress.dart
+      embedding_spec.dart
+
+    storage/
+      local_database.dart
+      file_store.dart
+      chunk_store.dart
+      vector_store.dart
+
+    indexing/
+      file_importer.dart
+      text_extractor.dart
+      chunker.dart
+      indexer.dart
+
+    search/
+      search_engine.dart
+      keyword_search.dart
+      vector_search.dart
+      rank_fusion.dart
+
+    platform/
+      native_bridge.dart
+
+    screens/
+      search_screen.dart
+      sources_screen.dart
+      passage_screen.dart
+      settings_screen.dart
+
+    widgets/
+      search_result_card.dart
+      indexing_progress.dart
+
+  android/
+    app/
+      src/
+        main/
+          AndroidManifest.xml
+          kotlin/
+            com/
+              example/
+                pocketsearch/
+                  MainActivity.kt
+                  NativeBridge.kt
+                  EmbeddingEngine.kt
+                  DocumentAccess.kt
+                  PdfExtractor.kt
+
+  assets/
+    fixtures/
+      sample.txt
+
+  test/
+    chunker_test.dart
+    rank_fusion_test.dart
+    vector_search_test.dart
+
+  integration_test/
+    offline_search_test.dart
+
+  benchmark/
+    queries.jsonl
+    relevance.jsonl
+    results.csv
+
+  docs/
+    architecture.md
+    benchmark.md
+    limitations.md
+```
+
+### Main file responsibilities
+
+| File | Responsibility |
+| --- | --- |
+| `main.dart` | Initialize dependencies and start the app |
+| `app.dart` | Theme and navigation |
+| `local_database.dart` | SQLite connection, schema, migrations, and transactions |
+| `file_store.dart` | Imported sources, permission metadata, and revisions |
+| `chunk_store.dart` | Passage text, locations, and full-text search records |
+| `vector_store.dart` | Embeddings and their compatible specification |
+| `file_importer.dart` | Register selected sources and queue indexing |
+| `text_extractor.dart` | Read TXT/Markdown and delegate PDF extraction |
+| `chunker.dart` | Split content while preserving provenance |
+| `indexer.dart` | Coordinate extraction, embedding, and publication |
+| `search_engine.dart` | Combine retrieval paths and group matches by file |
+| `native_bridge.dart` | Dart-facing wrapper around native calls |
+| `EmbeddingEngine.kt` | Load the model, tokenize, infer, and normalize |
+| `DocumentAccess.kt` | Read content URIs and retain supported permissions |
+| `PdfExtractor.kt` | Extract page-aware text |
+
+### Database ownership
+
+Use one database owner. For the first version, Dart owns the database; native code returns extraction and inference results. Dart and Kotlin must not maintain independent implementations that update the same indexing state.
+
+### Native bridge
+
+Keep the native bridge small:
+
+| Operation | Input | Output |
+| --- | --- | --- |
+| `initializeEmbedding` | Model artifact location and configuration | Loaded model specification |
+| `embedQuery` | Query text | Normalized vector |
+| `embedDocuments` | Small batch of titled passages | Normalized vectors |
+| `readSource` | Content URI | Bounded text or bytes |
+| `extractPdfPage` | Content URI and page number | Text and source location |
+| `openSource` | Content URI | Success or structured error |
+| `disposeEmbedding` | None | Completion |
+
+Run extraction and inference on native worker threads. An asynchronous channel call alone does not move expensive work off the native main thread.
+
+Transfer text and compact vectors across the bridge instead of repeatedly transferring whole PDFs. Keep the model loaded during active indexing and search, and serialize inference initially unless the runtime explicitly supports concurrent use.
+
+### Indexing flow
+
+1. `sources_screen.dart` requests file selection.
+2. `file_importer.dart` registers source URIs.
+3. `indexer.dart` loads the next queued source.
+4. `text_extractor.dart` extracts bounded content.
+5. `chunker.dart` creates passages with page or character locations.
+6. `native_bridge.dart` requests document embeddings.
+7. The stores save passages and vectors.
+8. A transaction publishes the completed revision.
+9. The screen observes saved progress.
+
+For the fastest first version, indexing can run while the app is open and resume from durable progress after reopening. This is resumable indexing, not guaranteed background execution. Completing work while the application is closed requires a properly integrated background execution path; do not assume a Dart isolate survives application termination.
+
+### Search flow
+
+1. The user submits a query.
+2. `search_engine.dart` requests a query embedding.
+3. Keyword search and vector search retrieve candidates.
+4. `rank_fusion.dart` combines their rankings.
+5. The engine removes overlap and groups passages by file.
+6. Results display the filename, preview, and source location.
+7. The passage screen opens the matching evidence.
+
+Run CPU-intensive vector scanning in a Dart isolate once measurements show it affects responsiveness. Keep queries and corpus vectors on the same embedding specification.
