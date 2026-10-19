@@ -12,7 +12,8 @@ void main() {
   });
 
   test('text offsets recover original Bengali passages', () {
-    final text = List.filled(80, 'বাংলা নথিতে গুরুত্বপূর্ণ তথ্য আছে।').join('\n');
+    final text =
+        List.filled(80, 'বাংলা নথিতে গুরুত্বপূর্ণ তথ্য আছে।').join('\n');
     final chunks = chunkSegments([ExtractedSegment(text)]);
     expect(chunks.length, greaterThan(1));
     for (final chunk in chunks) {

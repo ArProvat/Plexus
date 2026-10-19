@@ -23,7 +23,8 @@ class _PocketSearchAppState extends State<PocketSearchApp> {
   }
 
   void _openSearch() {
-    _navigator.currentState?.pushNamedAndRemoveUntil('/search', (r) => r.isFirst);
+    _navigator.currentState
+        ?.pushNamedAndRemoveUntil('/search', (r) => r.isFirst);
   }
 
   @override

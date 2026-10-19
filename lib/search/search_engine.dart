@@ -20,7 +20,8 @@ class SearchEngine {
     final vector = await NativeBridge.embedQuery(query);
     final rows = await database.searchableChunks(spec);
     final scores = await compute(_scoreRows, (rows: rows, query: vector));
-    final dense = scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final dense = scores.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
     final lexical = await database.keywordMatches(query);
     final fused = <int, double>{};
     for (var i = 0; i < dense.length && i < 50; i++) {
@@ -34,14 +35,17 @@ class SearchEngine {
     final ranked = rows.where((r) => fused.containsKey(r['id'])).toList()
       ..sort((a, b) => fused[b['id']]!.compareTo(fused[a['id']]!));
     final seen = <int>{};
-    return ranked.where((r) => seen.add(r['file_id'] as int)).take(10).map((r) =>
-      FileMatch(DocumentChunk.fromRow(r), r['name'] as String,
-          r['uri'] as String, fused[r['id']]!)).toList();
+    return ranked
+        .where((r) => seen.add(r['file_id'] as int))
+        .take(10)
+        .map((r) => FileMatch(DocumentChunk.fromRow(r), r['name'] as String,
+            r['uri'] as String, fused[r['id']]!))
+        .toList();
   }
 }
 
-Map<int, double> _scoreRows(({List<Map<String, Object?>> rows,
-    List<double> query}) input) {
+Map<int, double> _scoreRows(
+    ({List<Map<String, Object?>> rows, List<double> query}) input) {
   final scores = <int, double>{};
   for (final row in input.rows) {
     final bytes = row['vector'] as Uint8List;

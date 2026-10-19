@@ -4,9 +4,11 @@ class NativeBridge {
   static const _channel = MethodChannel('com.arprovat.pocketsearch/native');
 
   static set onSearch(void Function()? callback) {
-    _channel.setMethodCallHandler(callback == null ? null : (call) async {
-      if (call.method == 'openQuickSearch') callback();
-    });
+    _channel.setMethodCallHandler(callback == null
+        ? null
+        : (call) async {
+            if (call.method == 'openQuickSearch') callback();
+          });
   }
 
   static Future<bool> consumeSearchLaunch() async {
@@ -18,11 +20,13 @@ class NativeBridge {
   }
 
   static Future<Map<Object?, Object?>> initializeEmbedding() async =>
-      await _channel.invokeMapMethod<Object?, Object?>('initializeEmbedding') ?? {};
+      await _channel.invokeMapMethod<Object?, Object?>('initializeEmbedding') ??
+      {};
 
   static Future<List<double>> embedQuery(String text) async =>
       (await _channel.invokeListMethod<num>('embedQuery', text))!
-          .map((v) => v.toDouble()).toList();
+          .map((v) => v.toDouble())
+          .toList();
 
   static Future<List<List<double>>> embedDocuments(List<String> texts) async =>
       (await _channel.invokeListMethod<Object?>('embedDocuments', texts))!
@@ -47,15 +51,17 @@ class NativeBridge {
       await _channel.invokeMethod<int>('pdfPageCount', uri) ?? 0;
 
   static Future<String> extractPdfPage(String uri, int page) async =>
-      await _channel.invokeMethod<String>('extractPdfPage',
-          {'uri': uri, 'page': page}) ?? '';
+      await _channel
+          .invokeMethod<String>('extractPdfPage', {'uri': uri, 'page': page}) ??
+      '';
 
   static Future<void> closePdf() async =>
       _channel.invokeMethod<void>('closePdf');
 
-  static Future<List<Map<String, Object?>>> extractOffice(String uri,
-      String name) async => _records(await _channel.invokeListMethod<Object?>(
-      'extractOffice', {'uri': uri, 'name': name}));
+  static Future<List<Map<String, Object?>>> extractOffice(
+          String uri, String name) async =>
+      _records(await _channel.invokeListMethod<Object?>(
+          'extractOffice', {'uri': uri, 'name': name}));
 
   static Future<void> openSource(String uri) async =>
       _channel.invokeMethod<void>('openSource', uri);
