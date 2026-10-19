@@ -16,12 +16,12 @@ class EmbeddingEngine(private val context: Context) {
             val started = SystemClock.elapsedRealtime()
             val options = TextEmbedder.TextEmbedderOptions.builder()
                 .setBaseOptions(BaseOptions.builder()
-                    .setModelAssetPath("bert_embedder.tflite").build())
+                    .setModelAssetPath("mobile_bert.tflite").build())
                 .build()
             model = TextEmbedder.createFromOptions(context, options)
             loadMs = SystemClock.elapsedRealtime() - started
         }
-        return mapOf("model" to "bert_embedder/float32/1", "loadMs" to loadMs,
+        return mapOf("model" to "mobile_bert/float32/1", "loadMs" to loadMs,
             "normalization" to "L2", "runtime" to "MediaPipe tasks-text")
     }
 

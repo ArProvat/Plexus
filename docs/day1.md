@@ -40,13 +40,13 @@ Ensure MainActivity uses `singleTop`, and add this inside `application`:
 
 ## Local model
 
-The initial compatibility spike uses BERT from the
+The initial compatibility spike uses Mobile BERT from the
 [MediaPipe sample model configuration](https://github.com/google-ai-edge/mediapipe-samples/blob/main/examples/text_embedder/android/app/download_models.gradle).
 This is a Day 1 candidate, not a benchmarked replacement for the planned
 EmbeddingGemma evaluation.
 
 Download the artifact into
-`android/app/src/main/assets/bert_embedder.tflite` before building:
+`android/app/src/main/assets/mobile_bert.tflite` before building:
 
 ```text
 https://storage.googleapis.com/mediapipe-models/text_embedder/bert_embedder/float32/1/bert_embedder.tflite

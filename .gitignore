@@ -1,1 +1,28 @@
+# Local planning files
 7day.md
+
+# Flutter and Dart generated files
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+build/
+
+# Android and Gradle local files
+.gradle/
+android/.gradle/
+android/local.properties
+
+# IDE files
+.idea/
+*.iml
+
+# Flutter's default example test is replaced by project tests
+/test/widget_test.dart
+
+# Local image dropped into the fixture folder
+/assets/fixtures/icon.png
+
+# Local SDKs and tools
+.tools/
