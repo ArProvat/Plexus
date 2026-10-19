@@ -2,7 +2,6 @@ package com.arprovat.pocketsearch
 
 import android.content.Context
 import android.os.SystemClock
-import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.text.textembedder.TextEmbedder
 import java.io.File
 import java.net.URL
@@ -43,11 +42,7 @@ class EmbeddingEngine(private val context: Context) {
         check(modelFile.exists()) { "EmbeddingGemma model required; download it in Setup" }
         if (model == null) {
             val started = SystemClock.elapsedRealtime()
-            val options = TextEmbedder.TextEmbedderOptions.builder()
-                .setBaseOptions(BaseOptions.builder()
-                    .setModelAssetPath(modelFile.absolutePath).build())
-                .build()
-            model = TextEmbedder.createFromOptions(context, options)
+            model = TextEmbedder.createFromFile(context, modelFile)
             loadMs = SystemClock.elapsedRealtime() - started
         }
         return mapOf("model" to "embedding_gemma/task/256/1", "loadMs" to loadMs,
@@ -58,8 +53,9 @@ class EmbeddingEngine(private val context: Context) {
         require(text.isNotBlank() && text.length <= 4096) { "Text must be 1-4096 characters" }
         val context = TextEmbedder.TextFormatContext.builder()
             .setTaskType(if (document)
-                TextEmbedder.TextFormatContext.EmbeddingType.RETRIEVAL_DOCUMENT
-                else TextEmbedder.TextFormatContext.EmbeddingType.RETRIEVAL_QUERY)
+                TextEmbedder.EmbeddingType.RETRIEVAL_DOCUMENT
+                else TextEmbedder.EmbeddingType.RETRIEVAL_QUERY)
+            .setRole(if (document) TextEmbedder.TextRole.DOCUMENT else TextEmbedder.TextRole.QUERY)
             .setTitle(title)
             .build()
         val values = checkNotNull(model) { "Initialize the model first" }

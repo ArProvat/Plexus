@@ -5,9 +5,7 @@ import android.net.Uri
 import org.apache.poi.hwpf.HWPFDocument
 import org.apache.poi.hwpf.extractor.WordExtractor
 import org.apache.poi.hslf.usermodel.HSLFSlideShow
-import org.apache.poi.hslf.extractor.PowerPointExtractor
 import org.apache.poi.xslf.usermodel.XMLSlideShow
-import org.apache.poi.xslf.extractor.XSLFPowerPointExtractor
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 
 class OfficeExtractor(private val context: Context) {

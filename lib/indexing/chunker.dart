@@ -18,7 +18,7 @@ List<ChunkDraft> chunkSegments(List<ExtractedSegment> segments) {
       if (start >= text.length) break;
       var end = (start + 900).clamp(0, text.length);
       if (end < text.length) {
-        final candidate = text.lastIndexOf(RegExp(r'[.!?।\n]'), end);
+        final candidate = text.lastIndexOf(RegExp('[.!?\\u0964\\n]'), end);
         if (candidate > start + 450) end = candidate + 1;
         else {
           final space = text.lastIndexOf(RegExp(r'\s'), end);

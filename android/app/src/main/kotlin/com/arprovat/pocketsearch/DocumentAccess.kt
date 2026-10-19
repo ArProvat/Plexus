@@ -3,7 +3,6 @@ package com.arprovat.pocketsearch
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
