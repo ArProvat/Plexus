@@ -1,5 +1,9 @@
 # Day 1 implementation status
 
+> Archived experiment: this page describes the earlier MobileBERT sample app.
+> The current app imports selected files and folders and uses EmbeddingGemma.
+> Follow the [README](../README.md) for current setup and testing instructions.
+
 Source files are prepared at the repository root. This is not yet a generated or
 validated Flutter Android project. Flutter and adb were unavailable during setup.
 No Stitch reference or local model artifact was supplied. The Material layout is

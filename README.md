@@ -2,6 +2,8 @@
 
 PocketSearch is an Android Flutter app for searching the text inside documents you select. It currently accepts PDF, TXT, Markdown, DOC, DOCX, PPT, and PPTX files, including files inside a selected folder. Audio, video, and OCR are planned but not implemented.
 
+For implementation details and current verification status, see the [developer guide](docs/developer.md).
+
 ## Run on Android
 
 1. Run `flutter pub get` and `flutter run` from this directory with an Android phone or emulator connected.
@@ -13,7 +15,7 @@ The Android document picker controls access. Some folder roots cannot be selecte
 ## Current limits
 
 - Scanned PDFs require OCR, which is not implemented. Encrypted, corrupt, or inaccessible files show an error in file details.
-- TXT and Markdown must be UTF-8 and are limited to 16 MB each. Large Office files can use substantial memory during extraction.
+- TXT and Markdown must be UTF-8 and are limited to 16 MB each. Large Office files can use substantial memory during extraction. Legacy DOC and PPT extraction uses Apache POI and still needs Android device validation.
 - Passage sizing is bounded by characters. Exact EmbeddingGemma token counts are not yet exposed by this integration; the model task has a 512-token input limit.
 - Indexing resumes when the app is reopened. It does not continue after Android terminates the app.
 - Search uses SQLite full-text matching and an exact cosine scan over SQLite-stored vectors. Performance with very large collections has not been benchmarked.

@@ -60,31 +60,43 @@ class _FileDetailsScreenState extends State<FileDetailsScreen> {
         appBar: AppBar(title: Text(_file?.name ?? 'Document')),
         body: _file == null
             ? const Center(child: CircularProgressIndicator())
-            : ListView(padding: const EdgeInsets.all(16), children: [
-                Text(
-                    'Status: ${(_file!.jobStage ?? _file!.status).replaceAll('_', ' ')}'),
-                if (_file!.error != null)
-                  Text(_file!.error!,
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.error)),
-                if (_error != null) Text(_error!),
-                Text('${_chunks.length} passages'),
-                Wrap(spacing: 8, children: [
-                  TextButton(
-                      onPressed: _open, child: const Text('Open original')),
-                  TextButton(
-                      onPressed: _busy ? null : _retry,
-                      child: const Text('Retry')),
-                  TextButton(
-                      onPressed: () async {
-                        await LocalDatabase.instance.remove(widget.fileId);
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                      child: const Text('Remove')),
-                ]),
-                if (_busy) const LinearProgressIndicator(),
-                for (final chunk in _chunks)
-                  Card(
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _chunks.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              'Status: ${(_file!.jobStage ?? _file!.status).replaceAll('_', ' ')}'),
+                          if (_file!.error != null)
+                            Text(_file!.error!,
+                                style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.error)),
+                          if (_error != null) Text(_error!),
+                          Text('${_chunks.length} passages'),
+                          Wrap(spacing: 8, children: [
+                            TextButton(
+                                onPressed: _open,
+                                child: const Text('Open original')),
+                            TextButton(
+                                onPressed: _busy ? null : _retry,
+                                child: const Text('Retry')),
+                            TextButton(
+                                onPressed: () async {
+                                  await LocalDatabase.instance
+                                      .remove(widget.fileId);
+                                  if (context.mounted) Navigator.pop(context);
+                                },
+                                child: const Text('Remove')),
+                          ]),
+                          if (_busy) const LinearProgressIndicator(),
+                        ]);
+                  }
+                  final chunk = _chunks[index - 1];
+                  return Card(
                       child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Column(
@@ -95,7 +107,8 @@ class _FileDetailsScreenState extends State<FileDetailsScreen> {
                                         Theme.of(context).textTheme.titleSmall),
                                 const SizedBox(height: 6),
                                 Text(chunk.text),
-                              ]))),
-              ]),
+                              ])));
+                },
+              ),
       );
 }
