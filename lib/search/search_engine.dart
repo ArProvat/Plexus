@@ -18,13 +18,20 @@ class SearchEngine {
 
   Future<List<FileMatch>> search(String query, String spec) async {
     final vector = await NativeBridge.embedQuery(query);
-    final rows = await database.searchableChunks(spec);
-    final scores = await compute(_scoreRows, (rows: rows, query: vector));
-    final dense = scores.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final dense = <MapEntry<int, double>>[];
+    var afterId = 0;
+    while (true) {
+      final batch = await database.vectorBatch(spec, afterId);
+      if (batch.isEmpty) break;
+      afterId = batch.last['id'] as int;
+      dense.addAll(
+          (await compute(_scoreRows, (rows: batch, query: vector))).entries);
+      dense.sort((a, b) => b.value.compareTo(a.value));
+      if (dense.length > 50) dense.removeRange(50, dense.length);
+    }
     final lexical = await database.keywordMatches(query);
     final fused = <int, double>{};
-    for (var i = 0; i < dense.length && i < 50; i++) {
+    for (var i = 0; i < dense.length; i++) {
       fused.update(dense[i].key, (v) => v + 1 / (60 + i),
           ifAbsent: () => 1 / (60 + i));
     }
@@ -32,7 +39,7 @@ class SearchEngine {
       fused.update(lexical[i], (v) => v + 1 / (60 + i),
           ifAbsent: () => 1 / (60 + i));
     }
-    final ranked = rows.where((r) => fused.containsKey(r['id'])).toList()
+    final ranked = await database.resultRows(fused.keys.toList(), spec)
       ..sort((a, b) => fused[b['id']]!.compareTo(fused[a['id']]!));
     final seen = <int>{};
     return ranked

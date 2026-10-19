@@ -156,12 +156,26 @@ class LocalDatabase {
       .map(DocumentChunk.fromRow)
       .toList();
 
-  Future<List<Map<String, Object?>>> searchableChunks(String spec) async =>
+  Future<List<Map<String, Object?>>> vectorBatch(
+          String spec, int afterId) async =>
       (await db).rawQuery(
-          'SELECT c.*, f.name, f.uri FROM chunks c JOIN files f ON f.id = c.file_id '
+          'SELECT c.id, c.vector FROM chunks c JOIN files f ON f.id = c.file_id '
           "WHERE f.status = 'searchable' AND c.revision = f.active_revision "
-          'AND c.vector IS NOT NULL AND c.embedding_spec = ?',
-          [spec]);
+          'AND c.vector IS NOT NULL AND c.embedding_spec = ? AND c.id > ? '
+          'ORDER BY c.id LIMIT 2048',
+          [spec, afterId]);
+
+  Future<List<Map<String, Object?>>> resultRows(
+      List<int> ids, String spec) async {
+    if (ids.isEmpty) return [];
+    final placeholders = List.filled(ids.length, '?').join(',');
+    return (await db).rawQuery(
+        'SELECT c.*, f.name, f.uri FROM chunks c '
+        'JOIN files f ON f.id = c.file_id WHERE c.id IN ($placeholders) '
+        "AND f.status = 'searchable' AND c.revision = f.active_revision "
+        'AND c.embedding_spec = ?',
+        [...ids, spec]);
+  }
 
   Future<List<int>> keywordMatches(String query) async {
     if (query.runes.any((rune) => rune > 127)) {
