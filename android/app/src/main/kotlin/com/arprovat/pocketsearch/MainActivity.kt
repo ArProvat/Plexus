@@ -99,7 +99,10 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         channel?.setMethodCallHandler(null)
-        worker.execute { if (::embedder.isInitialized) embedder.close() }
+        worker.execute {
+            if (::embedder.isInitialized) embedder.close()
+            if (::pdfs.isInitialized) pdfs.close()
+        }
         worker.shutdown()
         super.onDestroy()
     }

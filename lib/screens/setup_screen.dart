@@ -114,7 +114,8 @@ class _SetupScreenState extends State<SetupScreen> {
           style: Theme.of(context).textTheme.titleMedium),
       for (final file in _files) ListTile(
         title: Text(file.name), subtitle: Text(file.error ??
-            (file.jobStage ?? file.status).replaceAll('_', ' ')),
+            '${(file.jobStage ?? file.status).replaceAll('_', ' ')}'
+            '${file.jobStage == 'extracting' || file.jobStage == 'embedding' ? ' · ${file.progress}%' : ''}'),
         leading: const Icon(Icons.description_outlined),
         onTap: () async {
           await Navigator.push(context, MaterialPageRoute(

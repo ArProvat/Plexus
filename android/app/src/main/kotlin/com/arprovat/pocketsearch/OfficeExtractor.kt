@@ -5,6 +5,7 @@ import android.net.Uri
 import org.apache.poi.hwpf.HWPFDocument
 import org.apache.poi.hwpf.extractor.WordExtractor
 import org.apache.poi.hslf.usermodel.HSLFSlideShow
+import org.apache.poi.hslf.usermodel.HSLFTextParagraph
 import org.apache.poi.xslf.usermodel.XMLSlideShow
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 
@@ -29,7 +30,7 @@ class OfficeExtractor(private val context: Context) {
                 }
                 "ppt" -> HSLFSlideShow(stream).use { slides ->
                     slides.slides.mapIndexed { index, slide ->
-                        mapOf("text" to slide.textParagraphs.flatten().joinToString("\n") { it.text },
+                        mapOf("text" to slide.textParagraphs.joinToString("\n") { HSLFTextParagraph.getText(it) },
                             "slide" to index + 1)
                     }
                 }

@@ -41,13 +41,13 @@ class LocalDatabase {
   }
 
   Future<List<SourceFile>> files() async => (await (await db).rawQuery(
-      'SELECT f.*, j.stage AS job_stage, j.error AS job_error FROM files f '
+      'SELECT f.*, j.stage AS job_stage, j.progress AS job_progress FROM files f '
       'LEFT JOIN index_jobs j ON j.file_id = f.id ORDER BY f.name COLLATE NOCASE'))
       .map(SourceFile.fromRow).toList();
 
   Future<SourceFile?> file(int id) async {
     final rows = await (await db).rawQuery('SELECT f.*, j.stage AS job_stage, '
-        'j.error AS job_error FROM files f LEFT JOIN index_jobs j ON j.file_id = f.id '
+        'j.progress AS job_progress FROM files f LEFT JOIN index_jobs j ON j.file_id = f.id '
         'WHERE f.id = ?', [id]);
     return rows.isEmpty ? null : SourceFile.fromRow(rows.first);
   }
