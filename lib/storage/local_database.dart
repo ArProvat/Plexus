@@ -72,19 +72,21 @@ class LocalDatabase {
   Future<void> status(int id, String stage,
       {String? error, int? progress}) async {
     final database = await db;
-    await database.rawUpdate(
-        'UPDATE files SET status = CASE WHEN active_revision = 0 '
-        "OR ? = 'inaccessible' THEN ? ELSE status END, error = ? WHERE id = ?",
-        [stage, stage, error, id]);
-    await database.update(
-        'index_jobs',
-        {
-          'stage': stage,
-          'error': error,
-          if (progress != null) 'progress': progress
-        },
-        where: 'file_id = ?',
-        whereArgs: [id]);
+    await database.transaction((tx) async {
+      await tx.rawUpdate(
+          'UPDATE files SET status = CASE WHEN active_revision = 0 '
+          "OR ? = 'inaccessible' THEN ? ELSE status END, error = ? WHERE id = ?",
+          [stage, stage, error, id]);
+      await tx.update(
+          'index_jobs',
+          {
+            'stage': stage,
+            'error': error,
+            if (progress != null) 'progress': progress
+          },
+          where: 'file_id = ?',
+          whereArgs: [id]);
+    });
   }
 
   Future<void> publish(
@@ -163,7 +165,8 @@ class LocalDatabase {
 
   Future<List<int>> keywordMatches(String query) async {
     if (query.runes.any((rune) => rune > 127)) {
-      final rows = await (await db).rawQuery('SELECT c.id FROM chunks c '
+      final rows = await (await db).rawQuery(
+          'SELECT c.id FROM chunks c '
           'JOIN files f ON f.id = c.file_id WHERE instr(c.text, ?) > 0 '
           "AND f.status = 'searchable' AND c.revision = f.active_revision LIMIT 50",
           [query]);

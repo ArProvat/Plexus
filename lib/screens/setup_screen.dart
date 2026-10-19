@@ -163,7 +163,7 @@ class _SetupScreenState extends State<SetupScreen> {
               title: Text(file.name),
               subtitle: Text(file.error ??
                   '${(file.jobStage ?? file.status).replaceAll('_', ' ')}'
-                      '${file.jobStage == 'extracting' || file.jobStage == 'embedding' ? ' · ${file.progress}%' : ''}'),
+                      '${file.jobStage == 'extracting' || file.jobStage == 'embedding' ? ' (${file.progress}%)' : ''}'),
               leading: const Icon(Icons.description_outlined),
               onTap: () async {
                 await Navigator.push(

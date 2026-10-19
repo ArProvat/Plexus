@@ -8,6 +8,8 @@ import org.apache.poi.hslf.usermodel.HSLFSlideShow
 import org.apache.poi.hslf.usermodel.HSLFTextParagraph
 import org.apache.poi.xslf.usermodel.XMLSlideShow
 import org.apache.poi.xwpf.usermodel.XWPFDocument
+import org.apache.poi.xwpf.usermodel.XWPFParagraph
+import org.apache.poi.xwpf.usermodel.XWPFTable
 
 class OfficeExtractor(private val context: Context) {
     fun extract(uri: Uri, name: String): List<Map<String, Any?>> {
@@ -24,8 +26,13 @@ class OfficeExtractor(private val context: Context) {
                     }
                 }
                 "docx" -> XWPFDocument(stream).use { doc ->
-                    doc.paragraphs.mapIndexed { index, paragraph ->
-                        mapOf("text" to paragraph.text, "section" to "Paragraph ${index + 1}")
+                    doc.bodyElements.mapIndexed { index, element ->
+                        val text = when (element) {
+                            is XWPFParagraph -> element.text
+                            is XWPFTable -> element.text
+                            else -> ""
+                        }
+                        mapOf("text" to text, "section" to "Section ${index + 1}")
                     }
                 }
                 "ppt" -> HSLFSlideShow(stream).use { slides ->
