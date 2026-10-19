@@ -13,12 +13,16 @@ class Indexer {
       final extension = file.name.toLowerCase().split('.').last;
       final segments = <ExtractedSegment>[];
       if (extension == 'pdf') {
-        final pages = await NativeBridge.pdfPageCount(file.uri);
-        for (var page = 1; page <= pages; page++) {
-          segments.add(ExtractedSegment(
-            await NativeBridge.extractPdfPage(file.uri, page), page: page));
-          await database.status(file.id, 'extracting',
-              progress: (page * 50 ~/ pages)); changed();
+        try {
+          final pages = await NativeBridge.pdfPageCount(file.uri);
+          for (var page = 1; page <= pages; page++) {
+            segments.add(ExtractedSegment(
+              await NativeBridge.extractPdfPage(file.uri, page), page: page));
+            await database.status(file.id, 'extracting',
+                progress: (page * 50 ~/ pages)); changed();
+          }
+        } finally {
+          await NativeBridge.closePdf();
         }
       } else if (extension == 'txt' || extension == 'md') {
         segments.add(ExtractedSegment(await NativeBridge.readText(file.uri)));

@@ -28,8 +28,8 @@ List<ChunkDraft> chunkSegments(List<ExtractedSegment> segments) {
       final piece = text.substring(start, end);
       if (piece.trim().isNotEmpty) {
         chunks.add(ChunkDraft(piece, page: segment.page, slide: segment.slide,
-          charStart: segment.page == null && segment.slide == null ? start : null,
-          charEnd: segment.page == null && segment.slide == null ? end : null,
+          charStart: segment.page == null && segment.slide == null && segment.section == null ? start : null,
+          charEnd: segment.page == null && segment.slide == null && segment.section == null ? end : null,
           section: segment.section));
       }
       if (end == text.length) break;

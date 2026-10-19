@@ -50,6 +50,9 @@ class NativeBridge {
       await _channel.invokeMethod<String>('extractPdfPage',
           {'uri': uri, 'page': page}) ?? '';
 
+  static Future<void> closePdf() async =>
+      _channel.invokeMethod<void>('closePdf');
+
   static Future<List<Map<String, Object?>>> extractOffice(String uri,
       String name) async => _records(await _channel.invokeListMethod<Object?>(
       'extractOffice', {'uri': uri, 'name': name}));

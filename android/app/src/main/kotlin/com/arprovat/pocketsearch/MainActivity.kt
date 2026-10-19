@@ -35,7 +35,7 @@ class MainActivity : FlutterActivity() {
                 documents.pickFolder(result)
             } else if (call.method in setOf("initializeEmbedding", "embedQuery", "embedDocuments",
                     "disposeEmbedding", "downloadModel", "modelStatus", "listFolder", "readText",
-                    "pdfPageCount", "extractPdfPage", "extractOffice", "openSource")) {
+                    "pdfPageCount", "extractPdfPage", "closePdf", "extractOffice", "openSource")) {
                 worker.execute {
                     try {
                         val value: Any? = when (call.method) {
@@ -59,6 +59,7 @@ class MainActivity : FlutterActivity() {
                             "listFolder" -> documents.listFolder(android.net.Uri.parse(call.arguments as String))
                             "readText" -> documents.readText(android.net.Uri.parse(call.arguments as String))
                             "pdfPageCount" -> pdfs.pageCount(android.net.Uri.parse(call.arguments as String))
+                            "closePdf" -> { pdfs.close(); null }
                             "extractPdfPage" -> {
                                 val args = call.arguments as Map<*, *>
                                 pdfs.page(android.net.Uri.parse(args["uri"] as String), args["page"] as Int)

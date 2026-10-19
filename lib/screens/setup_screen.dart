@@ -17,7 +17,19 @@ class _SetupScreenState extends State<SetupScreen> {
   String? _message;
 
   @override
-  void initState() { super.initState(); _refresh(); }
+  void initState() { super.initState(); _refresh(); _resume(); }
+
+  Future<void> _resume() async {
+    final files = await LocalDatabase.instance.files();
+    final pending = files.where((f) => {'queued', 'extracting', 'chunking', 'embedding'}
+        .contains(f.status)).toList();
+    if (pending.isEmpty) return;
+    if (mounted) setState(() => _busy = true);
+    for (final file in pending) {
+      await Indexer(LocalDatabase.instance).process(file, _refresh);
+    }
+    if (mounted) setState(() => _busy = false);
+  }
 
   Future<void> _refresh() async {
     try {
