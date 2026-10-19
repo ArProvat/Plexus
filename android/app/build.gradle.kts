@@ -40,6 +40,8 @@ android {
 
 dependencies {
     implementation("com.google.mediapipe:tasks-text:0.10.35")
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+    implementation("org.apache.poi:poi-ooxml:5.4.1")
 }
 
 kotlin {
