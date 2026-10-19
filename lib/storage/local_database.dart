@@ -40,18 +40,23 @@ class LocalDatabase {
     return id;
   }
 
-  Future<List<SourceFile>> files() async => (await (await db).query('files',
-      orderBy: 'name COLLATE NOCASE')).map(SourceFile.fromRow).toList();
+  Future<List<SourceFile>> files() async => (await (await db).rawQuery(
+      'SELECT f.*, j.stage AS job_stage, j.error AS job_error FROM files f '
+      'LEFT JOIN index_jobs j ON j.file_id = f.id ORDER BY f.name COLLATE NOCASE'))
+      .map(SourceFile.fromRow).toList();
 
   Future<SourceFile?> file(int id) async {
-    final rows = await (await db).query('files', where: 'id = ?', whereArgs: [id]);
+    final rows = await (await db).rawQuery('SELECT f.*, j.stage AS job_stage, '
+        'j.error AS job_error FROM files f LEFT JOIN index_jobs j ON j.file_id = f.id '
+        'WHERE f.id = ?', [id]);
     return rows.isEmpty ? null : SourceFile.fromRow(rows.first);
   }
 
   Future<void> status(int id, String stage, {String? error, int? progress}) async {
     final database = await db;
-    await database.update('files', {'status': stage, 'error': error},
-        where: 'id = ?', whereArgs: [id]);
+    await database.rawUpdate('UPDATE files SET status = CASE WHEN active_revision = 0 '
+        "OR ? = 'inaccessible' THEN ? ELSE status END, error = ? WHERE id = ?",
+        [stage, stage, error, id]);
     await database.update('index_jobs', {'stage': stage, 'error': error,
       if (progress != null) 'progress': progress}, where: 'file_id = ?', whereArgs: [id]);
   }
@@ -92,9 +97,10 @@ class LocalDatabase {
     'WHERE c.file_id = ? AND c.revision = f.active_revision ORDER BY c.sequence',
     [fileId])).map(DocumentChunk.fromRow).toList();
 
-  Future<List<Map<String, Object?>>> searchableChunks() async => (await db).rawQuery(
+  Future<List<Map<String, Object?>>> searchableChunks(String spec) async => (await db).rawQuery(
     'SELECT c.*, f.name, f.uri FROM chunks c JOIN files f ON f.id = c.file_id '
-    "WHERE f.status = 'searchable' AND c.revision = f.active_revision AND c.vector IS NOT NULL");
+    "WHERE f.status = 'searchable' AND c.revision = f.active_revision "
+    'AND c.vector IS NOT NULL AND c.embedding_spec = ?', [spec]);
 
   Future<List<int>> keywordMatches(String query) async {
     final terms = RegExp(r'[\p{L}\p{N}]+', unicode: true)

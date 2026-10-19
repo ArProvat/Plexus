@@ -22,7 +22,7 @@ class _SetupScreenState extends State<SetupScreen> {
   Future<void> _resume() async {
     final files = await LocalDatabase.instance.files();
     final pending = files.where((f) => {'queued', 'extracting', 'chunking', 'embedding'}
-        .contains(f.status)).toList();
+        .contains(f.jobStage)).toList();
     if (pending.isEmpty) return;
     if (mounted) setState(() => _busy = true);
     for (final file in pending) {
@@ -113,7 +113,8 @@ class _SetupScreenState extends State<SetupScreen> {
           '${_files.length} selected files searchable',
           style: Theme.of(context).textTheme.titleMedium),
       for (final file in _files) ListTile(
-        title: Text(file.name), subtitle: Text(file.error ?? file.status.replaceAll('_', ' ')),
+        title: Text(file.name), subtitle: Text(file.error ??
+            (file.jobStage ?? file.status).replaceAll('_', ' ')),
         leading: const Icon(Icons.description_outlined),
         onTap: () async {
           await Navigator.push(context, MaterialPageRoute(

@@ -28,8 +28,9 @@ class _QuickSearchScreenState extends State<QuickSearchScreen> {
         if (mounted) setState(() => _notice = 'No indexed files yet. Choose files or a folder in Setup.');
         return;
       }
-      await NativeBridge.initializeEmbedding();
-      final results = await SearchEngine(LocalDatabase.instance).search(query);
+      final model = await NativeBridge.initializeEmbedding();
+      final results = await SearchEngine(LocalDatabase.instance)
+          .search(query, model['model'] as String);
       if (!mounted) return;
       setState(() {
         _results = results;

@@ -16,9 +16,9 @@ class SearchEngine {
   SearchEngine(this.database);
   final LocalDatabase database;
 
-  Future<List<FileMatch>> search(String query) async {
+  Future<List<FileMatch>> search(String query, String spec) async {
     final vector = await NativeBridge.embedQuery(query);
-    final rows = await database.searchableChunks();
+    final rows = await database.searchableChunks(spec);
     final scores = await compute(_scoreRows, (rows: rows, query: vector));
     final dense = scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final lexical = await database.keywordMatches(query);

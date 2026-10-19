@@ -5,6 +5,7 @@ import android.os.SystemClock
 import com.google.mediapipe.tasks.text.textembedder.TextEmbedder
 import java.io.File
 import java.net.URL
+import java.security.MessageDigest
 import kotlin.math.sqrt
 
 // All calls, including close, run on the bridge's single worker.
@@ -12,6 +13,7 @@ class EmbeddingEngine(private val context: Context) {
     private var model: TextEmbedder? = null
     private var loadMs = 0L
     private val modelFile = File(context.filesDir, "embedding_gemma.task")
+    private val digestFile = File(context.filesDir, "embedding_gemma.sha256")
     private val modelUrl = "https://storage.googleapis.com/mediapipe-models/text_embedder/embedding_gemma/int4int8/latest/embedding_gemma.task"
 
     fun status(): Map<String, Any> = mapOf("ready" to modelFile.exists(),
@@ -30,12 +32,29 @@ class EmbeddingEngine(private val context: Context) {
             }
             require(temporary.length() > 100_000_000L) { "Model download was incomplete" }
             require(temporary.renameTo(modelFile)) { "Could not save model" }
+            digestFile.delete()
+            digestFile.writeText(digest())
             initialize()
         } catch (e: Exception) {
             temporary.delete()
             modelFile.delete()
+            digestFile.delete()
             throw e
         }
+    }
+
+    private fun digest(): String {
+        if (digestFile.exists()) return digestFile.readText().trim()
+        val hash = MessageDigest.getInstance("SHA-256")
+        modelFile.inputStream().use { input ->
+            val buffer = ByteArray(65536)
+            while (true) {
+                val size = input.read(buffer)
+                if (size < 0) break
+                hash.update(buffer, 0, size)
+            }
+        }
+        return hash.digest().joinToString("") { "%02x".format(it) }
     }
 
     fun initialize(): Map<String, Any> {
@@ -45,7 +64,7 @@ class EmbeddingEngine(private val context: Context) {
             model = TextEmbedder.createFromFile(context, modelFile)
             loadMs = SystemClock.elapsedRealtime() - started
         }
-        return mapOf("model" to "embedding_gemma/task/256/1", "loadMs" to loadMs,
+        return mapOf("model" to "embedding_gemma/task/256/${digest().take(16)}", "loadMs" to loadMs,
             "normalization" to "L2", "runtime" to "MediaPipe tasks-text")
     }
 

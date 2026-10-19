@@ -44,7 +44,7 @@ class _FileDetailsScreenState extends State<FileDetailsScreen> {
     appBar: AppBar(title: Text(_file?.name ?? 'Document')),
     body: _file == null ? const Center(child: CircularProgressIndicator()) :
     ListView(padding: const EdgeInsets.all(16), children: [
-      Text('Status: ${_file!.status.replaceAll('_', ' ')}'),
+      Text('Status: ${(_file!.jobStage ?? _file!.status).replaceAll('_', ' ')}'),
       if (_file!.error != null) Text(_file!.error!,
         style: TextStyle(color: Theme.of(context).colorScheme.error)),
       if (_error != null) Text(_error!),
