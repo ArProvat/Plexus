@@ -37,7 +37,13 @@ class _FileDetailsScreenState extends State<FileDetailsScreen> {
   Future<void> _retry() async {
     if (_file == null) return;
     setState(() => _busy = true);
-    await Indexer(LocalDatabase.instance).process(_file!, _refresh);
+    final indexer = Indexer(LocalDatabase.instance);
+    if (_file!.status == 'text_ready' &&
+        (await NativeBridge.modelStatus())['ready'] == true) {
+      await indexer.embedPrepared(_file!, _refresh);
+    } else {
+      await indexer.process(_file!, _refresh);
+    }
     if (mounted) setState(() => _busy = false);
   }
 

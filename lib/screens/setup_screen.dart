@@ -32,7 +32,12 @@ class _SetupScreenState extends State<SetupScreen> {
     if (pending.isEmpty) return;
     if (mounted) setState(() => _busy = true);
     for (final file in pending) {
-      await Indexer(LocalDatabase.instance).process(file, _refresh);
+      final indexer = Indexer(LocalDatabase.instance);
+      if (file.status == 'text_ready' && file.jobStage == 'embedding') {
+        await indexer.embedPrepared(file, _refresh);
+      } else {
+        await indexer.process(file, _refresh);
+      }
     }
     if (mounted) setState(() => _busy = false);
   }
@@ -58,9 +63,18 @@ class _SetupScreenState extends State<SetupScreen> {
     });
     try {
       await NativeBridge.downloadModel();
+      final prepared = (await LocalDatabase.instance.files())
+          .where((file) => file.status == 'text_ready')
+          .toList();
       if (mounted)
         setState(() => _message =
-            'Model ready. Retry text-prepared files to make them searchable.');
+            'Model ready. Embedding ${prepared.length} prepared files…');
+      for (final file in prepared) {
+        await Indexer(LocalDatabase.instance).embedPrepared(file, _refresh);
+      }
+      if (mounted)
+        setState(() =>
+            _message = 'Model ready. Prepared files have been processed.');
       await _refresh();
     } catch (e) {
       if (mounted) setState(() => _message = 'Model download failed: $e');

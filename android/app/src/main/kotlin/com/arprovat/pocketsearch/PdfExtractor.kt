@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.io.MemoryUsageSetting
+import com.tom_roush.pdfbox.pdmodel.encryption.InvalidPasswordException
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
 
@@ -17,8 +18,12 @@ class PdfExtractor(private val context: Context) {
         close()
         val stream = context.contentResolver.openInputStream(uri)
             ?: throw SecurityException("Cannot open selected PDF")
-        currentDocument = stream.use { input ->
-            PDDocument.load(input, MemoryUsageSetting.setupTempFileOnly())
+        currentDocument = try {
+            stream.use { input ->
+                PDDocument.load(input, MemoryUsageSetting.setupTempFileOnly())
+            }
+        } catch (_: InvalidPasswordException) {
+            throw IllegalArgumentException("Password-protected PDF requires a password")
         }
         currentUri = uri
         return currentDocument!!

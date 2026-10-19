@@ -8,6 +8,7 @@ import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import io.flutter.plugin.common.MethodChannel
 import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 
@@ -137,9 +138,13 @@ class DocumentAccess(private val activity: Activity) {
         } ?: throw SecurityException("Cannot open selected document")
         val start = if (bytes.size >= 3 && bytes[0] == 0xEF.toByte() &&
             bytes[1] == 0xBB.toByte() && bytes[2] == 0xBF.toByte()) 3 else 0
-        return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
-            .onUnmappableCharacter(CodingErrorAction.REPORT)
-            .decode(ByteBuffer.wrap(bytes, start, bytes.size - start)).toString()
+        return try {
+            StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(bytes, start, bytes.size - start)).toString()
+        } catch (_: CharacterCodingException) {
+            throw IllegalArgumentException("Unsupported text encoding; save this file as UTF-8")
+        }
     }
 
     fun openSource(uri: Uri) {

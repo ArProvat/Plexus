@@ -7,9 +7,8 @@ import org.apache.poi.hwpf.extractor.WordExtractor
 import org.apache.poi.hslf.usermodel.HSLFSlideShow
 import org.apache.poi.hslf.usermodel.HSLFTextParagraph
 import org.apache.poi.xslf.usermodel.XMLSlideShow
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor
 import org.apache.poi.xwpf.usermodel.XWPFDocument
-import org.apache.poi.xwpf.usermodel.XWPFParagraph
-import org.apache.poi.xwpf.usermodel.XWPFTable
 
 class OfficeExtractor(private val context: Context) {
     fun extract(uri: Uri, name: String): List<Map<String, Any?>> {
@@ -26,13 +25,12 @@ class OfficeExtractor(private val context: Context) {
                     }
                 }
                 "docx" -> XWPFDocument(stream).use { doc ->
-                    doc.bodyElements.mapIndexed { index, element ->
-                        val text = when (element) {
-                            is XWPFParagraph -> element.text
-                            is XWPFTable -> element.text
-                            else -> ""
+                    XWPFWordExtractor(doc).use { extractor ->
+                        doc.bodyElements.mapIndexed { index, element ->
+                            val text = StringBuilder()
+                            extractor.appendBodyElementText(text, element)
+                            mapOf("text" to text.toString(), "section" to "Section ${index + 1}")
                         }
-                        mapOf("text" to text, "section" to "Section ${index + 1}")
                     }
                 }
                 "ppt" -> HSLFSlideShow(stream).use { slides ->
