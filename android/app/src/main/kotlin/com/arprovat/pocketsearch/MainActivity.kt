@@ -101,7 +101,7 @@ class MainActivity : FlutterActivity() {
         channel?.setMethodCallHandler(null)
         worker.execute {
             if (::embedder.isInitialized) embedder.close()
-            if (::pdfs.isInitialized) pdfs.close()
+            if (::pdfs.isInitialized) pdfs.destroy()
         }
         worker.shutdown()
         super.onDestroy()

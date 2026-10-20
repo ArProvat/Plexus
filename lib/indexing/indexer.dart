@@ -42,7 +42,7 @@ class Indexer {
       }
       if (segments.every((s) => s.text.trim().isEmpty)) {
         throw const FormatException(
-            'No selectable text found; this file may need OCR');
+            'No selectable text or recognized OCR text found');
       }
       await database.status(file.id, 'chunking');
       changed();
