@@ -39,7 +39,7 @@ class SearchEngine {
       fused.update(lexical[i], (v) => v + 1 / (60 + i),
           ifAbsent: () => 1 / (60 + i));
     }
-    final ranked = await database.resultRows(fused.keys.toList(), spec)
+    final ranked = (await database.resultRows(fused.keys.toList(), spec)).toList()
       ..sort((a, b) => fused[b['id']]!.compareTo(fused[a['id']]!));
     final seen = <int>{};
     return ranked

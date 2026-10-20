@@ -51,7 +51,8 @@ class DocumentAccess(private val activity: Activity) {
             if (requestCode == 702) {
                 val uri = data.data ?: throw IllegalStateException("No folder URI")
                 persist(uri, flags)
-                result.success(mapOf("uri" to uri.toString(), "name" to (name(uri) ?: "Folder")))
+                result.success(mapOf("uri" to uri.toString(),
+                    "name" to DocumentsContract.getTreeDocumentId(uri).substringAfterLast('/')))
             } else {
                 val uris = mutableListOf<Uri>()
                 data.data?.let(uris::add)
@@ -71,13 +72,6 @@ class DocumentAccess(private val activity: Activity) {
         if (flags != 0) try {
             activity.contentResolver.takePersistableUriPermission(uri, flags)
         } catch (_: SecurityException) { /* Some providers grant only session access. */ }
-    }
-
-    private fun name(uri: Uri): String? {
-        activity.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
-            if (it.moveToFirst()) return it.getString(0)
-        }
-        return null
     }
 
     private fun metadata(uri: Uri): Map<String, Any?> {

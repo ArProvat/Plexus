@@ -100,12 +100,18 @@ class _SetupScreenState extends State<SetupScreen> {
         items = await NativeBridge.pickFiles();
       }
       const supported = {'pdf', 'txt', 'md', 'doc', 'docx', 'ppt', 'pptx'};
+      final selectedCount = items.length;
       items = items
           .where((item) => supported
               .contains((item['name'] as String).toLowerCase().split('.').last))
           .toList();
+      final skipped = selectedCount - items.length;
+      final skippedMessage =
+          skipped > 0 ? ' $skipped unsupported file(s) skipped.' : '';
       if (mounted)
-        setState(() => _message = '${items.length} supported files found.');
+        setState(() => _message = items.isEmpty && skipped > 0
+            ? 'No supported files selected. Choose PDF, TXT, MD, DOC, DOCX, PPT, or PPTX.'
+            : '${items.length} supported files found.$skippedMessage');
       for (final item in items) {
         final id =
             await LocalDatabase.instance.register(item, folderUri: folderUri);
